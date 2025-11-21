@@ -1,0 +1,245 @@
+---
+title: "Caffeine and Its Effects"
+author: "Johnathan Nguyen"
+output:
+  html_document:
+    df_print: paged
+---
+
+**Dataset:** [Caffeine Intake Tracker](https://www.kaggle.com/datasets/prekshad2166/caffeine-intake-tracker-csv)  
+
+
+## 1. Libraries
+```{r}
+# libraries
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(ggplot2)
+```
+
+### 1.1 Reading the Data
+```{r}
+caffeine <- read.csv("caffeine_intake_tracker.csv")
+```
+
+
+## 2. Summary
+This project analyzes caffeine intake patterns among a sample of 500 participants. The goal is to understand how caffeine intake influences focus, sleep quality, and productivity while considering demographic factors such as gender and time of day. After cleaning and verifying the data, caffeine was scaled to make it seem more realistic. Using visualizations, it reveals that a higher caffeine intake improves focus but also reduces sleep quality. The analysis also shows no difference by gender and a minimal difference by time of day, showing that caffeine effects are consistent across different groups.   
+
+
+## 3. Purpose 
+The primary purpose of this project is to identify patterns in caffeine consumption and explore how they correlate to focus and sleep outcomes. More specifically, it identifies whether increased caffeine intake correlates with improved focus levels and how it impacts sleep quality. The secondary objectives included finding a correlation between gender, beverage type, or time of day that influences these patterns.  
+
+
+## 4. Data
+## 4.1 Data Overview
+```{r}
+dim(caffeine)
+```
+Rows: **500** | Columns **13** 
+
+### 4.2 Data Dictionary  
+**User Reports - All Numerical**  
+  - **Caffeine_mg** - amount of caffeine consumed (milligrams on a 0-1 scale)  
+  - **age** - Participant's age (years)  
+  - **focus_level** - self-reported attention/focus towards something  
+  - **sleep_quality** - self-reported sleep quality on a rating scale  
+  - **sleep_impacted** - whether caffeine negatively affected sleep  
+
+**Beverages (1 = selected, 0 = not selected) - All Categorical**  
+  - **beverage_coffee** - Coffee was selected  
+  - **beverage_energy_drink** - Energy drink was selected  
+  - **beverage_tea** - Tea was selected
+  
+**Time of Day (1 = that time) - All Categorical**  
+  - **time_of_day_morning** - consumed in the morning  
+  - **time_of_day_afternoon** - consumed in the afternoon  
+  - **time_of_day_evening** - consumed in the evening  
+  
+**Gender (1 = that gender) - All Categorical**  
+  - **gender_female** - participant is female  
+  - **gender_male** - participant is male  
+
+### 4.3 Data Cleaning
+```{r}
+colSums(is.na(caffeine))
+```
+The data set was tidy with no NA or Null values found.
+
+### 4.4 Cleanliness
+ - No Missing Values (NA or null cells)
+ - A lot of observations are Boolean (0 and 1)
+ - Variables such as caffeine_mg and age are scaled from 0-1 (changed caffeine mg to 0-1000 so it's more reasonable)
+ - All variables and observations are spelled properly
+ - Data is easily readable and easy to understand 
+ - Some features are correlated such as caffeine_mg to focus_level and sleep_quality and caffeine mg to sleep_impacted
+
+### 4.5 Cleaning
+We scale the variable of caffeine mg to make it more realistic and consistent for the rest of the analysis. We converted the original scaling of 0-1 to 0-1000, which allows us to visualize the data in a more realistic comparison to milligrams, making it show the actual caffeine intake level.   
+
+As for age, we keep it on a scale of 0-1 because it allows us to get a bigger spread of data without having single values. To interpret age, you can convert it to real ages by assuming the scale is represented from 0-100, as the closer to 0 an observation is, the younger they are, while the closer to 100, the older they may be. There is no exact scaling that was given within the data set, so we can only make an assumption. Age, being on a scale of 0-1, allows us to have age alongside other features without the values being so spread out. 
+```{r}
+# converting caffeine mg from 0-1 scale to 0-1000
+caffeine$caffeine_mg_scaled <- caffeine$caffeine_mg
+caffeine$caffeine_mg <- round(caffeine$caffeine_mg_scaled * 1000, 1)
+```
+
+
+## 5. Exploraory Data Analysis 
+### 5.1 Summary Statistics
+```{r}
+caffeine
+```
+The original data set of caffeine intake from 500 observations included the type of drink they drank, how much caffeine they had, their age, focus level, sleep quality, sleep impact, and their gender. (With a change of `caffeine_mg` to a scale of 0-1000 and adding `caffeine_mg_scaled` to show the 0-1 scaling.
+
+```{r}
+summary(caffeine)
+```
+
+### 5.2 Caffeine (mg): Boxplot
+This box plot shows the summary of caffeine intake among participants and patterns in caffeine intake. It shows that while majority of the people consume around 200-300 mg, some people reach up to 1000mg, indicating high caffeine consumers. This can help understand whether individuals might be more prone to sleep issues or something else.
+```{r}
+boxplot(caffeine$caffeine_mg, horizontal = TRUE,
+        col = "lightblue",
+        main = "Caffeine (mg): Boxplot",
+        xlab = "caffeine (mg)")
+```
+> This box plot shows the average caffeine for the 500 observations. The median (black line) represents the average of how much caffeine each person drinks, with a value of 290.9 mg. By using the box plot and the summary, you can see that 50% of the observations are between 177.3 mg and 518.2 mg of caffeine.
+
+### 5.3 Caffeine vs Focus Level
+This scatter plot helps show whether caffeine intake improves focus levels among the observations and helps explore how caffeine impacts focus levels. This helps to see if caffeine helps people focus, depending on the amount of caffeine intake they have.
+```{r}
+plot(caffeine$caffeine_mg, caffeine$focus_level,
+     main = "Caffeine (mg) vs. Focus Level",
+     xlab = "Caffeine (mg)",
+     ylab = "Focus Level")
+```
+> The scatter plot shows a weak positive correlation between the two variables of caffeine and focus levels. This is because as caffeine increases, the focus tends to also increase, yet there isn't really a strong linear relationship showing the increase. Something you can also notice is that most observations lie between 0-700 mg.
+
+### 5.4 Age Histogram
+This graph helps illustrate the age distribution on a scale of 0-1. Showing the number of people per age group. This helps us examine the demographic influences on caffeine consumption.
+```{r}
+hist(caffeine$age,
+     breaks = 35,
+     col = "lightblue",
+     main = "Age Histogram",
+     xlab = "Age (Scaled 0-1)",
+     ylab = "Frequency")
+```
+> The histogram gives a distribution of ages from the observations. The spread is fairly even across the entire chart, with some mild bumps around 0.45 and 1. 
+
+### 5.5 Sleep Quality: Boxplot
+This plot shows an overview of how participants rated their sleep quality on a 0-1 scale. It shows the majority of values are between 0.4-0.8, showing most of the participants reported slightly above average sleep, and helps analyze the impact of caffeine on sleep quality.  
+```{r}
+boxplot(caffeine$sleep_quality, horizontal = TRUE,
+        col = "lightblue",
+        main = "Sleep Quality: Boxplot",
+        xlab = "Sleep Quality (Scaled: 0-1)")
+```
+> This box plot shows the distribution of sleep-quality ratings (0-1) from the 500 observations. The median (black line) represents the average of rated sleep, with a value of 0.6441. Representing only slightly above average sleep quality. By using the plot, you can also see that 50% of the ratings range between 0.4148 and 0.7819 in terms of sleep quality.
+
+### 5.6 Sleep Quality vs Gender
+The comparison box plots help show the objective of exploring gender differences and sleep quality.
+```{r}
+gender <- ifelse(caffeine$gender_female == 1, "Female",
+          ifelse(caffeine$gender_male == 1, "Male", "Other"))
+
+boxplot(caffeine$sleep_quality ~ gender,
+        main = "Sleep Quality by Gender",
+        xlab = "", ylab = "Sleep Quality (0–1)",
+        col = c("pink","lightblue"))
+
+```
+> The box plot shows that males and females have similar medians, indicating that caffeine's sleep effects don't change between both genders and are quite consistent.
+
+### 5.7 Sleep Quality vs Caffeine (mg)
+This scatter plot shows how caffeine intake relates to sleep quality. A weak negative trend shows that caffeine intake increases, and sleep quality slightly decreases. Thus supporting the common expectations that caffeine can negatively impact rest when consumed in higher amounts, and how caffeine consumption affects sleep.  
+```{r}
+plot(caffeine$caffeine_mg_scaled, caffeine$sleep_quality,
+     main = "Sleep Quality vs. Caffeine (mg)",
+     xlab = "Caffeine (Scaled 0-1)",
+     ylab = "Sleep Quality (Scaled: 0-1)")
+
+# adds the y=mx+b line 
+abline(lm(caffeine$sleep_quality ~ caffeine$caffeine_mg_scaled), col="red")
+```
+```{r}
+cor(caffeine$caffeine_mg_scaled, caffeine$sleep_quality)
+```
+> The plot above shows a weak negative trend. As the amount of caffeine intake increases, the amount of sleep quality tends to decrease, with the relationship between the two only being very small and scattered. The majority of the points tend to lie between 0.6 and 0.8 for sleep quality and between 0-0.4 for amounts of caffeine. Using the correlation, you can also see that for every increase in caffeine consumption, sleep quality slightly decreases on average. This shows that higher caffeine intakes have a weak association with poor sleep quality.
+
+### 5.8 Sleep Quality vs Caffeine by Gender
+Extends on the gender analysis. Showing that caffeine effects don't matter based on gender.
+```{r}
+plot(caffeine$caffeine_mg, caffeine$sleep_quality,
+     col = c("pink","lightblue")[as.factor(gender)],
+     pch = 16,
+     xlab = "Caffeine (mg)", ylab = "Sleep Quality (0–1)",
+     main = "Sleep Quality vs Caffeine (Colored by Gender)")
+legend("topright", legend = levels(as.factor(gender)),
+       col = c("pink","lightblue"), pch = 16, bty = "o")
+```
+> Plot of Sleep Quality vs Caffeine, but separated by gender, showing that no matter the gender (male or female), caffeine doesn't have an impact on someone's sleep quality, as they are all scattered around the same. This helps check whether there is a relationship between caffeine and sleep that differs by gender.
+
+### 5.9 Sleep Impact: Barplot
+This bar chart summarizes how many participants felt their sleep was impacted by caffeine. Helping in exploring and understanding sleep impacts.
+```{r}
+barplot(as.numeric(table(caffeine$sleep_impacted)),
+        names.arg = c("No","Yes"),
+        ylim = c(0, max(table(caffeine$sleep_impacted))),
+        col = c("red","green"),
+        main = "Frequency on Whether their sleep was impacted by Caffeine",
+        ylab = "Frequency")
+```
+> Most respondents responded with "No", showing that although caffeine affects sleep quality numerically, the majority of the individuals may not believe it.
+
+### 5.10 Sleep Quality by Time of Day
+The box plot compares the average sleep quality based on when people consumed caffeine. Explaining how the timing of caffeine consumption affects sleep quality. This shows the small differences and effects on overall sleep quality.
+```{r}
+
+tod_counts <- c(
+  Morning   = sum(caffeine$time_of_day_morning == 1, na.rm = TRUE),
+  Afternoon = sum(caffeine$time_of_day_afternoon == 1, na.rm = TRUE),
+  Evening   = sum(caffeine$time_of_day_evening == 1, na.rm = TRUE)
+)
+tod_counts
+
+```
+```{r}
+sleep_quality_morning   <- caffeine$sleep_quality[caffeine$time_of_day_morning==1]
+sleep_quality_afternoon <- caffeine$sleep_quality[caffeine$time_of_day_afternoon==1]
+sleep_quality_evening   <- caffeine$sleep_quality[caffeine$time_of_day_evening==1]
+
+boxplot(list(
+  Morning=sleep_quality_morning, 
+  Afternoon=sleep_quality_afternoon, 
+  Evening=sleep_quality_evening),
+        col=c("lightblue","blue","navy"),
+        main="Sleep Quality by Time of Caffeine Consumtion",
+        ylab="Sleep Quality (0–1)")
+
+```
+> This shows average sleep quality for all consumers based on time. The graph shows that there is a small change in the 50% for those who drink at certain times. For example, it shows that there is a lower 50% of sleep quality when drinking in the Evening compared to the afternoon or morning. Even with this said, the medians are all around 0.6-0.7 for sleep quality, no matter the time of caffeine consumption.  
+
+
+## 6. Results
+### 6.1 Description of analysis method
+To explore the effects of caffeine intake on everything, I used a more visual method. Using numerical summaries to understand trends and using visuals such as box plots to compare group distributions. I also used scatter plots to visualize correlations between caffeine and focus or sleep, then used histograms to find the distribution for scaled variables such as age. These methods were chosen because they allow for a simple and clear way to show spreads, correlations, and details when it comes to data in the survey.
+
+### 6.2 Method of Choice
+Using graphs to analyze as a method provides a clear foundation for identifying patterns while making the models easy to fit with all data types. Box plots and scatter plots were good visuals because they helped highlight differences and correlations pretty well while helping to find the trend. As this also helped with the objectives, because of how easy it was to find relationships between values
+
+### 6.3 Findings
+- **Caffeine Intake Patterns:** Based on the analysis, most participants consume moderate caffeine levels around 200-500mg.
+- **Focus Relationship:** There is a weak positive correlation between caffeine intake and focus levels showing a small amount of focus gained.
+There is a weak negative correlation between sleep quality and higher caffeine intake, indicating that as caffeine consumption increases, sleep quality tends to decline slightly over time.
+- **Gender Differences:** There isn't a caffeine impact on both groups as they are fairly similar.
+- **Time of Day:** Based on the time of consumption of caffeine, there is a slight decline in sleep quality the later in the day someone intakes caffeine.
+
+**Overall**
+Caffeine has minor but consistent impacts mentally. Moderate consumption can provide short-term focus, while excessive intake can lead to impacted sleep.
+
+## 7. References
+ - Freeman, M., & Ross, J. (2019). Programming Skills for Data Science: Start writing code to Wrangle, analyze, and visualize data with R. Addison-Wesley. 
+ - Grolemund, G., & Wickham, H. (2016). R for data science. Hadley Wickham. 
